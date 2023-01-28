@@ -1,22 +1,36 @@
+"""
+This is an entry point of the application.
+"""
+
 from cli import set_args, parse_args
 
-from repository_contacts import add_contact, remove_contact, search_contact, change_contact
-from repository_notes import add_note, remove_note, search_note, change_note
+from repository.repository_contacts import (
+    add_contact,
+    remove_contact,
+    search_contact,
+    change_contact,
+)
+from repository.repository_notes import add_note, remove_note, search_note, change_note
 
 
 def main():
+    """
+    Main flow of the application.
+    """
     set_args()
     action, target, args = parse_args()
 
     if target == "contact":
         return work_with_contacts(args, action)
-    elif target == "note":
+    if target == "note":
         return work_with_notes(args, action)
-    else:
-        return "Unknown target."
+    return "Unknown target."
 
 
 def work_with_contacts(args, action):
+    """
+    Calls functions that work with contacts.
+    """
     name = args.get("name")
     birthday = args.get("birthday")
     email = args.get("email")
@@ -36,7 +50,7 @@ def work_with_contacts(args, action):
                 "birthday": birthday,
                 "email": email,
                 "phone": phone,
-                "address": address
+                "address": address,
             }
             return change_contact(attrs_to_update)
         case _:
@@ -44,6 +58,9 @@ def work_with_contacts(args, action):
 
 
 def work_with_notes(args, action):
+    """
+    Calls functions that work with notes.
+    """
     title = args.get("title")
     text = args.get("text")
     tags = args.get("tags")
@@ -61,5 +78,5 @@ def work_with_notes(args, action):
             return "Unknown command"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(main())

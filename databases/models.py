@@ -1,12 +1,27 @@
-from mongoengine import Document, StringField, DateTimeField, ListField, EmbeddedDocumentField, EmbeddedDocument
+"""
+This module stores models to store contacts and notes in the database.
+"""
+
 from datetime import datetime
-from mongoengine import connect
 
+from mongoengine import (
+    Document,
+    StringField,
+    DateTimeField,
+    ListField,
+    EmbeddedDocumentField,
+    EmbeddedDocument,
+    connect,
+)
 
-connect(db='mydata', host='localhost', port=27017)
+connect(db="mydata", host="localhost", port=27017)
 
 
 class Contact(Document):
+    """
+    Represents a contact.
+    """
+
     name = StringField(required=True, unique=True)
     email = StringField(required=True, unique=True)
     birthday = DateTimeField()
@@ -15,10 +30,18 @@ class Contact(Document):
 
 
 class Tag(EmbeddedDocument):
+    """
+    Represents a tag.
+    """
+
     name = StringField()
 
 
 class Note(Document):
+    """
+    Represents a note.
+    """
+
     title = StringField(required=True, unique=True)
     created = DateTimeField(default=datetime.now())
     text = StringField(max_length=800, required=True)

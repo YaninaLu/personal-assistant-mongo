@@ -1,36 +1,55 @@
-from models import Contact
-from verify_input import verify_birthday, verify_name, verify_email, verify_phone
+"""
+This module works with the contacts database.
+"""
+
 import datetime
 
-from redis_cache import cache
-
+from databases.models import Contact
+from databases.redis_cache import cache
+from verify_input import verify_birthday, verify_name, verify_email, verify_phone
 
 DATE_FORMAT = "%d.%m.%Y"
 
 
 def convert_bd(birthday):
+    """
+    Converts a birthdate string into a datetime object.
+    Raises ValueError if the birthdate doesn't match the format.
+    :return: date as datetime
+    """
     try:
         birthday_date = datetime.datetime.strptime(birthday, DATE_FORMAT).date()
-    except ValueError:
-        raise ValueError(f"{birthday} does not march format '%d.%m.%Y'")
+    except ValueError as exc:
+        raise ValueError(f"{birthday} does not march format '%d.%m.%Y'") from exc
     return birthday_date
 
 
 def add_contact(name, birthday, email, phone, address):
+    """
+    Adds a contact to the database.
+    """
     try:
         if birthday:
             birthday = verify_birthday(convert_bd(birthday))
 
-        Contact(name=verify_name(name), birthday=birthday, email=verify_email(email), phone=verify_phone(phone),
-                address=address).save()
+        Contact(
+            name=verify_name(name),
+            birthday=birthday,
+            email=verify_email(email),
+            phone=verify_phone(phone),
+            address=address,
+        ).save()
 
         return "A new contact was added successfully!"
 
     except Exception as err:
-        return f"Something went wrong: {err}"
+        raise err
 
 
 def remove_contact(name):
+    """
+    Removes a contact from the database.
+    """
     try:
         target_contact = Contact.objects.get(name=name)
         target_contact.delete()
@@ -41,6 +60,9 @@ def remove_contact(name):
 
 @cache
 def search_contact(name, phone, email):
+    """
+    Searches and displays a contact by part of a name, phone, or email.
+    """
     if name:
         result = Contact.objects.filter(name__icontains=name)
     elif phone:
@@ -52,14 +74,25 @@ def search_contact(name, phone, email):
 
     if len(result) > 0:
         res = []
-        for r in result:
-            res.append([r.name, r.phone, r.email, r.birthday, r.address])
+        for contact in result:
+            res.append(
+                [
+                    contact.name,
+                    contact.phone,
+                    contact.email,
+                    contact.birthday,
+                    contact.address,
+                ]
+            )
         return res
-    else:
-        return "Search wasn't successful."
+    return "Search wasn't successful."
 
 
 def change_contact(attrs_to_update):
+    """
+    Changes contact's info.
+    :param attrs_to_update: a dict of data to update
+    """
     try:
         target_contact = Contact.objects.get(name=attrs_to_update.get("name"))
         for attr, value in attrs_to_update.items():

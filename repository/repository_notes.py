@@ -1,8 +1,16 @@
-from models import Note, Tag
-from redis_cache import cache
+"""
+This module works with the notes database.
+"""
+
+from databases.models import Note, Tag
+from databases.redis_cache import cache
 
 
 def add_note(title, text, tags):
+    """
+    Adds a note to the database.
+    :param tags: a list of tags
+    """
     try:
         tag_list = add_tags(tags)
         Note(title=title, text=text, tags=tag_list).save()
@@ -13,6 +21,9 @@ def add_note(title, text, tags):
 
 
 def remove_note(title):
+    """
+    Removes a note from the database.
+    """
     try:
         target_note = Note.objects.get(title=title)
         target_note.delete()
@@ -23,6 +34,10 @@ def remove_note(title):
 
 @cache
 def search_note(title, text, tag):
+    """
+    Searches and displays a note by title, text, or tags.
+    :param tag: a list that consists of one tag
+    """
     if title:
         result = Note.objects.filter(title__icontains=title)
     elif text:
@@ -34,14 +49,16 @@ def search_note(title, text, tag):
 
     if len(result) > 0:
         res = []
-        for r in result:
-            res.append([r.title, r.text, [tag.name for tag in r.tags]])
+        for note in result:
+            res.append([note.title, note.text, [tag.name for tag in note.tags]])
         return res
-    else:
-        return "Search wasn't successful."
+    return "Search wasn't successful."
 
 
 def change_note(title, text, tags):
+    """
+    Changes note's content.
+    """
     try:
         target_note = Note.objects.get(title=title)
         tag_list = add_tags(tags)
@@ -55,6 +72,11 @@ def change_note(title, text, tags):
 
 
 def add_tags(tags):
+    """
+    Creates a list of Tag objects.
+    :param tags: a list of tags
+    :return: a list of Tag objects
+    """
     tag_list = []
     for tag in tags:
         tag = Tag(name=tag)
